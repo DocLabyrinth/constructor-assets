@@ -2,6 +2,12 @@ require 'bundler/setup'
 require 'rmagick'
 require_relative 'defs'
 
+File.open('CONST/GFX/DATA.FIL', 'rb') do |f|
+  archive = Archive::File.read(f)
+  puts "entries in file: #{archive.num}"
+  p archive.i_index
+end
+
 #File.open('LEV01.DAT', 'rb') do |f|
   #f.seek(12)
   #level_file = Level::File.read(f)
@@ -57,8 +63,8 @@ require_relative 'defs'
         #next
       #end
 
-       each pixel is a number indicating a position
-       in the color palette for the level
+       #each pixel is a number indicating a position
+       #in the color palette for the level
       #color_arr.push(cmap.colors[pixel])
     #end
 

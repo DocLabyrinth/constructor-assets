@@ -1,0 +1,12 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bindata (2.1.0)
+    rmagick (2.14.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bindata
+  rmagick
