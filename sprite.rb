@@ -2,23 +2,19 @@ require 'bundler/setup'
 require 'rmagick'
 require_relative 'defs'
 
-File.open('CONST/GFX/DATA.FIL', 'rb') do |f|
-  archive = Archive::File.read(f)
-  puts "entries in file: #{archive.num}"
-  p archive.i_index
+out_dir = 'output/DATA'
+
+File.open("#{out_dir}/LEV01.DAT", 'rb') do |f|
+  f.seek(12)
+  level_file = Level::File.read(f)
+  level_file.chunks.each do |chunk|
+    File.open("#{out_dir}/LEV01-#{chunk.id}.DAT", 'wb') do |of|
+      of.write(chunk.data.to_binary_s)
+    end
+  end
 end
 
-#File.open('LEV01.DAT', 'rb') do |f|
-  #f.seek(12)
-  #level_file = Level::File.read(f)
-  #level_file.chunks.each do |chunk|
-    #File.open("LEV01-#{chunk.id}.DAT", 'wb') do |of|
-      #of.write(chunk.data.to_binary_s)
-    #end
-  #end
-#end
-
-#File.open('LEV01-CMAP.DAT', 'rb') do |f|
+#File.open("#{out_dir}/LEV01-CMAP.DAT", 'rb') do |f|
   #cmap = Level::Cmap.read(f)
 #end
 
@@ -27,63 +23,73 @@ end
   #p blks.snapshot
 #end
 
-#File.open('HOUSES.SPR', 'rb') do |f|
+Dir["#{out_dir}/*.SPR"].each do |filename|
+  sprite_dir_name = filename.split('/').last.split('.').first
+  sprite_dir = "#{out_dir}/#{sprite_dir_name}"
+  begin
+    Dir.mkdir(sprite_dir)
+  rescue Errno::EEXIST
+  end
 
-  #cmap = Level::Cmap.read(File.read('LEV01-CMAP.DAT'))
+  File.open(filename, 'rb') do |f|
 
-  #imf = ImFile.read(f)
-  #puts "Sprites in file: #{imf.spr_count}"
-  #offsets = imf.offsets.to_a.delete_if{|o| o < 1}.unshift(0)
+    cmap = Level::Cmap.read(File.read("#{out_dir}/LEV01-CMAP.DAT"))
 
-  #offsets.each_with_index do |offset, index|
-    #f.seek(offset)
-    #next_offset = offsets[index + 1]
-    #data_length = next_offset.nil? ? offset : (next_offset - offset)
-    #im = Image.read(f.read(data_length))
+    imf = ImFile.read(f)
+    puts "Sprites in file: #{imf.spr_count}"
+    offsets = imf.offsets.to_a.delete_if{|o| o < 1}.unshift(0)
 
-    #next if im.width < 1 || im.height < 1
+    offsets.each_with_index do |offset, index|
+      f.seek(offset)
+      next_offset = offsets[index + 1]
+      data_length = next_offset.nil? ? offset : (next_offset - offset)
+      im = Image.read(f.read(data_length))
 
-    #puts "Im: #{im.width}, #{im.height}"
+      next if im.width < 1 || im.height < 1
 
-    #last_was_zero = false
-    #color_arr = []
+      puts "Im: #{im.width}, #{im.height}"
 
-    #im.pixels.each do |pixel|
-       #a 0 means the number after it indicates how
-       #many pixels should be transparent as a means
-       #of compressing empty pixels
-      #if pixel == 0
-        #last_was_zero = true
-        #next
-      #end
+      last_was_zero = false
+      color_arr = []
 
-      #if last_was_zero
-        #color_arr = color_arr.concat([nil] * pixel)
-        #last_was_zero = false
-        #next
-      #end
+      im.pixels.each do |pixel|
+        #a 0 means the number after it indicates how
+        #many pixels should be transparent as a means
+        #of compressing empty pixels
+        if pixel == 0
+          last_was_zero = true
+          next
+        end
 
-       #each pixel is a number indicating a position
-       #in the color palette for the level
-      #color_arr.push(cmap.colors[pixel])
-    #end
+        if last_was_zero
+          color_arr = color_arr.concat([nil] * pixel)
+          last_was_zero = false
+          next
+        end
 
-    #img = Magick::Image.new(im.width, im.height)
-    #img.background_color = 'Transparent'
+        #each pixel is a number indicating a position
+        #in the color palette for the level
+        color_arr.push(cmap.colors[pixel])
+      end
 
-    #px_count = -1
+      img = Magick::Image.new(im.width, im.height)
+      img.background_color = 'Transparent'
 
-    #for y_it in 0..im.height-1
-      #for x_it in 0..im.width-1
-        #px_count += 1
-        #next if color_arr[px_count].nil?
+      px_count = -1
 
-        #curr_pix = color_arr[px_count]
-        #rgb_str = "rgb(#{curr_pix["red"]}, #{curr_pix["green"]}, #{curr_pix["blue"]})"
-        #img.pixel_color(x_it, y_it, rgb_str)
-      #end
-    #end
+      for y_it in 0..im.height-1
+        for x_it in 0..im.width-1
+          px_count += 1
+          next if color_arr[px_count].nil?
 
-    #img.write("houses/#{index}.png")
-  #end
-#end
+          curr_pix = color_arr[px_count]
+          rgb_str = "rgb(#{curr_pix["red"]}, #{curr_pix["green"]}, #{curr_pix["blue"]})"
+          img.pixel_color(x_it, y_it, rgb_str)
+        end
+      end
+
+      img.write("#{sprite_dir}/#{index}.png")
+    end
+  end
+end
+
