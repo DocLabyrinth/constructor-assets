@@ -34,7 +34,6 @@ The script is currently very dumb and just spits out a load of extracted files o
 * Produce sprite sheets that could be dropped straight into [Phaser.js](http://phaser.io/) or other game libraries
 * Encode the .WAV files to .ogg or something more web-friendly
 * Encode the videos to Theora or just extract the frames because they're mostly very short?
-* The level tiles and maps are currently not extracted. The formats haven't been examined in detail yet, but I think they use the same colour palette reference style that the sprites do
 
 ### Known Issues
 * The SFX/DATA.FIL file has formatting which causes the script to fail and miscalculate the offsets about halfway through the file. Therefore only about half the .wav files are extracted. This is likely due to an entry with 0 length, which seems to be a common feature (or problem) with the formats the game uses.
