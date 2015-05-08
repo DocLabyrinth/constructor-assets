@@ -18,7 +18,7 @@ The credit for working out the more complicated part of decrypting the files and
 
 This repo contains:
 * One script in Golang (extract.go) to extract the DATA.FIL archives, which wrap all the essential assets for the game.
-* One script in Ruby (sprite.rb) to extract the sprites
+* One script in Ruby (sprite.rb) to extract the sprites and the isometric tiles
 
 To use the script:
 * Obtain a copy of constructor from your favourite abandonware site (or the original game CD if any of them still exist)

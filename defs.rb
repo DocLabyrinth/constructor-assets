@@ -28,7 +28,7 @@ module Level
   class Blocks < BinData::Record
     endian :big
     array :iso_blocks, :read_until => :eof do
-      string :block, :length => 256
+      array :pixels, :type => :uint8, :initial_length => 256
     end
   end
 

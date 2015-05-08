@@ -18,10 +18,62 @@ end
   #cmap = Level::Cmap.read(f)
 #end
 
-#File.open('LEV01-BLKS.DAT', 'rb') do |f|
-  #blks = Level::Blocks.read(f)
-  #p blks.snapshot
-#end
+File.open("#{out_dir}/LEV01-BLKS.DAT", 'rb') do |f|
+  blks = Level::Blocks.read(f)
+
+  sprite_dir = "#{out_dir}/BLKS"
+  begin
+    Dir.mkdir(sprite_dir)
+  rescue Errno::EEXIST
+  end
+
+  cmap = Level::Cmap.read(File.read("#{out_dir}/LEV01-CMAP.DAT"))
+  block_width = 32
+  block_height = 15
+
+  # see https://github.com/shlainn/game-file-formats/wiki/Constructor-level-files
+  block_mask = [
+    "..............XXXX..............",
+    "............XXXXXXXX............",
+    "..........XXXXXXXXXXXX..........",
+    "........XXXXXXXXXXXXXXXX........",
+    "......XXXXXXXXXXXXXXXXXXXX......",
+    "....XXXXXXXXXXXXXXXXXXXXXXXX....",
+    "..XXXXXXXXXXXXXXXXXXXXXXXXXXXX..",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.",
+    "..XXXXXXXXXXXXXXXXXXXXXXXXXXXX..",
+    "....XXXXXXXXXXXXXXXXXXXXXXXX....",
+    "......XXXXXXXXXXXXXXXXXXXX......",
+    "........XXXXXXXXXXXXXXXX........",
+    "..........XXXXXXXXXXXX..........",
+    "............XXXXXXXX............",
+    "..............XXXX.............."
+  ].map{|line| line.split("")}
+
+  blks.iso_blocks.each_with_index do |block, index|
+    img = Magick::Image.new(block_width, block_height)
+    img.background_color = 'Transparent'
+
+    px_count = -1
+
+    # the blocks are all 32x15 images, with each pixel
+    # represented as a reference to a value in the colour
+    # palette like the other sprites
+    for y_it in 0..(block_height-1)
+      for x_it in 0..(block_width-1)
+        next unless block_mask[y_it][x_it] == 'X'
+
+        px_count += 1
+
+        curr_pix = cmap.colors[block[px_count]]
+        rgb_str = "rgb(#{curr_pix["red"]}, #{curr_pix["green"]}, #{curr_pix["blue"]})"
+        img.pixel_color(x_it, y_it, rgb_str)
+      end
+    end
+
+    img.write("#{sprite_dir}/#{index}.png")
+  end
+end
 
 Dir["#{out_dir}/*.SPR"].each do |filename|
   sprite_dir_name = filename.split('/').last.split('.').first
