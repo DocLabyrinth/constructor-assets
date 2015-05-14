@@ -32,6 +32,13 @@ module Level
     end
   end
 
+  class Mapd < BinData::Record
+    endian :little
+    uint16 :width
+    uint16 :height
+    array :tiles, :type => :uint16, :read_until => :eof
+  end
+
   class File < BinData::Record
     endian :big
     array :chunks, :initial_length => 6 do
