@@ -1,0 +1,9 @@
+[package]
+name = "constructor-asset-extractor"
+version = "0.1.0"
+authors = ["g <a@b.com>"]
+
+[dependencies]
+clap = "~2.27.0"
+nom = "^3.2"
+byteorder = "1.2.1"
