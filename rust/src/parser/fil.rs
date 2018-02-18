@@ -7,8 +7,64 @@ use std::fs::File;
 use std::path::Path;
 
 use parser::types::{FilFileIndex, FilIndexItem};
+use clap;
+
 
 const ENTRIES_DECRYPTION_VALUE : u32 = 0x3BD7A59A;
+
+pub fn handle_cli_args(matches: &clap::ArgMatches) {
+    let fil_matches =  matches.subcommand_matches("fil").unwrap();
+    let action = fil_matches.value_of("action").unwrap();
+    let file_path = Path::new(fil_matches.value_of("file").unwrap());
+
+    let mut file = match File::open(&file_path) {
+         // The `description` method of `io::Error` returns a string that
+         // describes the error
+         Ok(file) => file,
+         Err(err) => {
+             println!("Couldn't open input file {}", err);
+             return;
+         },
+     };
+
+     let fil_index = match load_index(&mut file) {
+         Ok(file) => file,
+         Err(err) => {
+             println!("Failed to load the file index: {}", err);
+             return;
+         }
+     };
+
+     if action == "inspect" {
+         println!("{:?} contains this many entries: {:?}", file_path, fil_index.num_entries);
+
+         for file_idx in 0..fil_index.num_entries - 1 {
+             let current_filename = &fil_index.entries[file_idx as usize].filename;
+             let current_offset = &fil_index.entries[file_idx as usize].offset;
+
+             let next_offset = &fil_index.entries[file_idx as usize + 1].offset;
+             let file_size = next_offset - current_offset;
+
+             println!("Filename: {:?}, Size: {:?}kb", current_filename, file_size / 1024);
+         }
+     }
+     else if action == "extract" {
+         let output_path = Path::new(fil_matches.value_of("output-dir").unwrap());
+
+         if !output_path.exists() || !output_path.is_dir() {
+             println!("{:?} does not exist or is not a directory", output_path.to_str());
+             return;
+         }
+
+         match extract_files(&mut file, &fil_index, output_path) {
+             Ok(num) => print!("Extracted this many files: {:?}", num),
+             Err(err) => {
+                 println!("Failed to extract one or more files: {}", err);
+                 return;
+             }
+         };
+     }
+}
 
 pub fn parse_index_entry(entry_buf: &mut [u8], offset: u64) -> FilIndexItem {
     // This is the code which undoes the obfuscation on the
@@ -20,7 +76,7 @@ pub fn parse_index_entry(entry_buf: &mut [u8], offset: u64) -> FilIndexItem {
     // I couldn't figure it out :(
 
     for byte_idx in 0usize..17usize {
-        let mut current_byte : i32 = entry_buf[byte_idx] as i32;
+        let mut current_byte : i32;
         let bump_value = byte_idx as u64 + (offset * 17);
 
         current_byte = entry_buf[byte_idx] as i32;
@@ -36,7 +92,6 @@ pub fn parse_index_entry(entry_buf: &mut [u8], offset: u64) -> FilIndexItem {
         Ok(name) => name,
         Err(_) => "parsing failed for this entry".to_owned(),
     };
-    // filename.trim_matches(|c| println!("{:?}", c); false);
 
     FilIndexItem {
         filename: filename,
@@ -78,18 +133,13 @@ pub fn extract_files(file: &mut File, file_index: &FilFileIndex, output_dir: &Pa
         }
 
         let target_path = output_dir.join(current_filename);
-        // let mut output_file = match File::create(target_path) {
-        //     Ok(file) => file,
-        //     Err(err) => Err(err)
-        // };
-        let mut output_file = File::create(target_path).unwrap();
+        let mut output_file = try!(File::create(target_path));
 
         let next_offset = &file_index.entries[file_idx as usize + 1].offset;
         let bytes_to_read = next_offset - current_offset;
 
-
-        file.seek(SeekFrom::Start(*current_offset));
-        io::copy(&mut file.take(bytes_to_read), &mut output_file);
+        try!(file.seek(SeekFrom::Start(*current_offset)));
+        try!(io::copy(&mut file.take(bytes_to_read), &mut output_file));
     }
 
     Ok(file_index.num_entries)
