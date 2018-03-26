@@ -17,7 +17,7 @@ fn main() {
                           .arg(Arg::with_name("action")
                             .index(1)
                             .required(true)
-                            .help("inspect")
+                            .help("inspect, extract")
                           )
                           .arg(Arg::with_name("file")
                             .short("f")
