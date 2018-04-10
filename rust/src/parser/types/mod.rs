@@ -9,6 +9,8 @@ pub struct FilFileIndex {
     pub entries : Vec<FilIndexItem>,
 }
 
+mod error;
 mod sprite_image;
 
 pub use self::sprite_image::SpriteImage;
+pub use self::error::AssetError;

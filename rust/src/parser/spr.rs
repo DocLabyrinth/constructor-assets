@@ -6,17 +6,19 @@ use buffer::ReadBuffer;
 use std::fs;
 use std::fs::File;
 use std::path::Path;
-use std::io::{Error,Seek,SeekFrom};
+use std::io::{Error, SeekFrom, Seek};
+
 use nom::{IResult,le_u16,le_u8};
 
 use parser::types::SpriteImage;
-use image::{GenericImage, ImageBuffer, RGB};
+use parser::lev::extract_color_palette;
 
 pub fn handle_cli_args(matches: &clap::ArgMatches) {
     let spr_matches = matches.subcommand_matches("spr").unwrap();
     let action = spr_matches.value_of("action").unwrap();
 
     let file_path_str = spr_matches.value_of("file").unwrap();
+    let palette_path_str = spr_matches.value_of("level-file").unwrap();
 
     let sprites = match parse_sprite_file(file_path_str) {
         Ok(spr) => spr,
@@ -38,16 +40,9 @@ pub fn handle_cli_args(matches: &clap::ArgMatches) {
             println!("sprite: {:?}, frames: {}", sprite_key, sprites.len());
         }
     } else if action == "extract" {
-
+        let color_palette = extract_color_palette(palette_path_str).unwrap();
+        println!("palette result: {:?}", color_palette);
     }
-}
-
-fn load_color_palette(file_path_str: &str) -> Result<Vec<u8>, Error> {
-    let mut palette = Vec::with_capacity(256);
-    let file_path = Path::new(file_path_str);
-    let mut file = try!(File::open(&file_path));
-    file.read_buffer(&mut palette);
-    Ok(palette.iter().map(|color| RGB(*color)).collect())
 }
 
 fn parse_sprite_file(file_path_str: &str) -> Result<Vec<SpriteImage>, Error> {

@@ -49,7 +49,13 @@ pub fn handle_cli_args(matches: &clap::ArgMatches) {
          }
      }
      else if action == "extract" {
-         let output_path = Path::new(fil_matches.value_of("output-dir").unwrap());
+         let output_path = match fil_matches.value_of("output-dir") {
+             Some(path) => Path::new(path),
+             None => {
+                 println!("An output directory is required to extract files");
+                 return;
+             }
+         };
 
          if !output_path.exists() || !output_path.is_dir() {
              println!("{:?} does not exist or is not a directory", output_path.to_str());

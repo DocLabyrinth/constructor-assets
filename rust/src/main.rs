@@ -2,6 +2,7 @@ extern crate clap;
 use clap::{Arg, App, SubCommand};
 
 #[macro_use] extern crate nom;
+#[macro_use(quick_error)] extern crate quick_error;
 extern crate byteorder;
 extern crate buffer;
 extern crate image;
@@ -26,6 +27,13 @@ fn main() {
                             .takes_value(true)
                             .help("path to the target .SPR file")
                           )
+                          .arg(Arg::with_name("level-file")
+                            .short("p")
+                            .long("palette-file")
+                            .required(true)
+                            .takes_value(true)
+                            .help("path to a level .DAT file (to extract the color palette)")
+                          )
                           .arg(Arg::with_name("output-dir")
                             .short("d")
                             .long("output-dir")
@@ -39,6 +47,7 @@ fn main() {
                           .arg(Arg::with_name("action")
                             .index(1)
                             .required(true)
+                            .possible_values(&["inspect", "extract"])
                             .help("inspect, extract")
                           )
                           .arg(Arg::with_name("file")
