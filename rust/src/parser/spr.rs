@@ -10,12 +10,10 @@ use std::io::{Error, SeekFrom, Seek};
 use image;
 use image::{ImageBuffer};
 
-use nom::{IResult,le_u16,le_u8};
+use nom::{IResult,le_u16,le_i16,le_u8};
 
 use parser::types::SpriteImage;
 use parser::lev::extract_color_palette;
-
-type SpriteIndex = HashMap<String,Vec<SpriteImage>>;
 
 pub fn handle_cli_args(matches: &clap::ArgMatches) {
     let spr_matches = matches.subcommand_matches("spr").unwrap();
@@ -34,15 +32,15 @@ pub fn handle_cli_args(matches: &clap::ArgMatches) {
         }
     };
 
-    let mut index : SpriteIndex = HashMap::new();
-    for sprite in &sprites {
-        let sprite_key = format!("{}-{}", sprite.chunk1, sprite.chunk2);
-        index.entry(sprite_key).or_insert(Vec::new()).push(sprite.clone());
-    }
-
     if action == "inspect" {
-        for (sprite_key, sprites) in index.iter() {
-            println!("sprite: {:?}, frames: {}", sprite_key, sprites.len());
+        for sprite in sprites {
+            println!(
+                "width: {:?}, height: {:?}, offset_h?: {}, offsetV?: {}",
+                sprite.width,
+                sprite.height,
+                sprite.offset_h,
+                sprite.offset_y
+            );
         }
     } else if action == "extract" {
         let output_path = match spr_matches.value_of("output-dir") {
@@ -150,10 +148,12 @@ fn parse_sprite_file<'a>(file_path_str: &'a str, palette: &'a Vec<image::Rgba<u8
  }
 
  fn parse_sprite<'a>(buffer: &'a [u8], palette: &Vec<image::Rgba<u8>>) -> IResult<&'a [u8], SpriteImage> {
+    // TODO: this is throwing a warning about an unused variable called e
+    // this most likely comes from using map!() instead of map_res!()
     do_parse!(
         buffer,
-        chunk1: le_u16 >>
-        chunk2: le_u16 >>
+        offset_h: le_i16 >>
+        offset_y: le_i16 >>
         width: le_u16 >>
         height: le_u16 >>
         raw_pixels: map!(many0!(
@@ -176,7 +176,7 @@ fn parse_sprite_file<'a>(file_path_str: &'a str, palette: &'a Vec<image::Rgba<u8
                 }
             }
 
-            SpriteImage { chunk1, chunk2, width, height, image_buf }
+            SpriteImage { offset_h, offset_y, width, height, image_buf }
         })
     )
 }

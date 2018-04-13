@@ -2,10 +2,12 @@ use image::{ImageBuffer, Rgba};
 
 #[derive(Debug, Clone)]
 pub struct SpriteImage {
-    // I suspect that chunk1 and chunk2 indicate sequences or related sprites
-    // but I've not been able to confirm this yet
-    pub chunk1 : u16,
-    pub chunk2 : u16,
+    // I'm pretty sure the first two numbers are all negative offsets,
+    // indicating how far from a specific point to draw the image.
+    // I still haven't determined what they are relative to, possibly
+    // the position of the base object on the screen
+    pub offset_h : i16,
+    pub offset_y : i16,
     pub width : u16,
     pub height : u16,
     pub image_buf : ImageBuffer<Rgba<u8>, Vec<u8>>,
