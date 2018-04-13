@@ -2,15 +2,19 @@ use std::string::String;
 use std::io::{Read, SeekFrom, Seek};
 use std::fs::File;
 use std::path::Path;
-use image::{ColorType, Pixel, Rgba};
+use image::{Pixel, Rgba};
 use buffer::ReadBuffer;
-use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt};
 
 use parser::types::AssetError;
 
 pub fn extract_color_palette(file_path_str: &str) -> Result<Vec<Rgba<u8>>, AssetError> {
     let file_path = Path::new(file_path_str);
     let mut file = try!(File::open(&file_path));
+
+    // not sure why this is necessary but there are some
+    // unknown bytes at the start of the file and not
+    // seeking past them breaks everything
     try!(file.seek(SeekFrom::Start(12)));
 
     for _chunk_idx in 0..6 {
