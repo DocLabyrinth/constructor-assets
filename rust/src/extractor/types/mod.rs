@@ -1,3 +1,5 @@
+use image::{ImageBuffer, Rgba};
+
 #[derive(Debug)]
 pub struct FilIndexItem {
     pub filename : String,
@@ -9,8 +11,10 @@ pub struct FilFileIndex {
     pub entries : Vec<FilIndexItem>,
 }
 
-mod error;
-mod sprite_image;
+pub type SpriteBuffer = ImageBuffer<Rgba<u8>, Vec<u8>>;
+
+pub mod error;
+pub mod sprite_image;
 
 pub use self::sprite_image::SpriteImage;
 pub use self::error::AssetError;

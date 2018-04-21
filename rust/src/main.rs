@@ -2,12 +2,13 @@ extern crate clap;
 use clap::{Arg, App, SubCommand};
 
 #[macro_use] extern crate nom;
+#[macro_use] extern crate maplit;
 #[macro_use(quick_error)] extern crate quick_error;
 extern crate byteorder;
 extern crate buffer;
 extern crate image;
 
-mod parser;
+mod extractor;
 
 fn main() {
     let matches = App::new("Constructor Assets Extractor")
@@ -69,8 +70,8 @@ fn main() {
 
 
     if matches.is_present("spr") {
-        parser::spr::handle_cli_args(&matches)
+        extractor::spr::cli::handle_cli_args(&matches)
     } else if matches.is_present("fil") {
-        parser::fil::handle_cli_args(&matches)
+        extractor::fil::handle_cli_args(&matches)
     }
 }

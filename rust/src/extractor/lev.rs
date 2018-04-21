@@ -6,7 +6,7 @@ use image::{Pixel, Rgba};
 use buffer::ReadBuffer;
 use byteorder::{BigEndian, ReadBytesExt};
 
-use parser::types::AssetError;
+use extractor::types::AssetError;
 
 pub fn extract_color_palette(file_path_str: &str) -> Result<Vec<Rgba<u8>>, AssetError> {
     let file_path = Path::new(file_path_str);

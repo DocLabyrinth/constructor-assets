@@ -6,7 +6,7 @@ use std::io::{Error, Read, SeekFrom, Seek};
 use std::fs::File;
 use std::path::Path;
 
-use parser::types::{FilFileIndex, FilIndexItem};
+use extractor::types::{FilFileIndex, FilIndexItem};
 use clap;
 
 

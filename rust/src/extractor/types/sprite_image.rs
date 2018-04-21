@@ -7,7 +7,7 @@ pub struct SpriteImage {
     // I still haven't determined what they are relative to, possibly
     // the position of the base object on the screen
     pub offset_h : i16,
-    pub offset_y : i16,
+    pub offset_v : i16,
     pub width : u16,
     pub height : u16,
     pub image_buf : ImageBuffer<Rgba<u8>, Vec<u8>>,
