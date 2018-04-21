@@ -34,10 +34,16 @@ pub fn make_sprite_sheet(anim_sprites: Vec<SpriteImage>) -> Result<SpriteBuffer,
     for (anim_idx, anim_sprite) in anim_sprites.iter().enumerate() {
         let base_x = anim_idx as u32 * largest_width;
         let center_x = base_x + (largest_width / 2);
+        let offset_h32 = anim_sprite.offset_h.abs() as u32;
+        let draw_at_x = if offset_h32 > center_x {
+            base_x
+        } else {
+            center_x - offset_h32
+        };
 
         sheet_buf.copy_from(
             &anim_sprite.image_buf,
-            center_x - anim_sprite.offset_h.abs() as u32,
+            draw_at_x,
             largest_height - anim_sprite.height as u32
         );
     }
